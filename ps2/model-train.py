@@ -10,36 +10,72 @@ from collections import namedtuple
 
 DTreeNode = namedtuple("BTreeNode", "sign")
 
+
 # CLASS DTREENODE
-class dTreeNode(label):
-	def __init__(self, label):
-		self.label = label
-	def branchOut(node):
-		self.branch = node
+class dTreeNode():
+    def __init__(self, label='none'):
+        self.label = label
+
+    def branchOut(self, node):
+        self.branch = node
+
+    def setDecision(self, bestA):
+        self.decision = bestA
+
 
 # GenerateDTree
 # Generates a Decision Tree
 # @param:
 #   dataset -> a list of dictionary containing training data
 #   attributes -> a dictionary containing the attributes and the type
-def GenerateDTree(dataset, attributes, valueList):
+def GenerateDTree(dataset, attrDict, valueList):
     if allPositive(valueList):
         return dTreeNode(1)
     elif allNegative(valueList):
         return dTreeNode(0)
 
-    if len(attributes) == 0:  # or len(dataset)minimum allowed per branch
+    if len(attrDict) == 0:  # or len(dataset)minimum allowed per branch
         MCV = mostCommonValue(valueList)
         return dTreeNode(MCV)
 
-    bestA = bestAttribute(dataset, attributes, valueList)
+    bestAttr = bestAttribute(dataset, attrDict, valueList)
+    returnNode = dTreeNode()
+    returnNode.setDecision(bestAttr)
+
+    if attrDict[bestAttr] == 'c':
+        subsets, knownVals = makeSubsetsContinuous(dataset, bestAttr, 10)
+    else:
+        subsets, knownVals = makeSubsetsDiscrete(dataset, bestAttr)
+
+    for possibleVal in subsets.keys():
+        if len(knownVals[possibleVal]) != 0:
+            newSet = []
+            newValList = []
+            for i in knownVals[possibleVal]:
+                newSet.append(dataset[i])
+                newValList.append(valueList[i])
+            newNode = GenerateDTree(newSet, attrDict, newValList)
+            returnNode.addBranch(newNode)
+    return returnNode
+
 
 # bestAttribute
 # Calculates the best attribute
 # @param:
-#	dataset-> a list of dictionary containing the training data
-#	attributes -> a dictionary containing the attirubtes and their type
-def bestAttribute(dataset, attributes, valueList, typeDict)
+#   dataset-> a list of dictionary containing the training data
+#   attrDict -> a dictionary containing the attirubtes and their type
+#   valueList -> a list of values of the classification
+# @ret:
+#   bAttr -> the best attribute (string)
+def bestAttribute(dataset, attrDict, valueList):
+    maxGain = 0
+    bAttr = ""
+    for attr in attrDict.keys():
+        tGain = Gain(dataset, attr, attrDict)
+        if tGain > maxGain:
+            bAttr = attr
+            maxGain = tGain
+            return bAttr
 
 
 # Entropy
@@ -69,9 +105,9 @@ def Gain(S, attr, attrDict):
             sumSubsetEntropy += (ent_i * p_i)
         return e1 - sumSubsetEntropy
     else:
-        N = int(raw_input('Found a continuous value for attribute' + attr +
-                          '. How many subsets? '))
-        subsets, knownVals = makeSubsetsContinuous(S, attr, N)
+        # N = int(raw_input('Found a continuous value for attribute' + attr +
+                        #  '. How many subsets? '))
+        subsets, knownVals = makeSubsetsContinuous(S, attr, 10)  # TODO FIX THIS
         for i in knownVals.keys():
             p_i = knownVals[i] / len(S)
             s_i = []
