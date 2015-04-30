@@ -10,23 +10,36 @@ from collections import namedtuple
 
 DTreeNode = namedtuple("BTreeNode", "sign")
 
+# CLASS DTREENODE
+class dTreeNode(label):
+	def __init__(self, label):
+		self.label = label
+	def branchOut(node):
+		self.branch = node
 
 # GenerateDTree
 # Generates a Decision Tree
 # @param:
 #   dataset -> a list of dictionary containing training data
 #   attributes -> a dictionary containing the attributes and the type
-def GenerateDTree(dataset, attributes, valueList, typeDict):
+def GenerateDTree(dataset, attributes, valueList):
     if allPositive(valueList):
-        return DTreeNode(1)
+        return dTreeNode(1)
     elif allNegative(valueList):
-        return DTreeNode(0)
+        return dTreeNode(0)
 
     if len(attributes) == 0:  # or len(dataset)minimum allowed per branch
         MCV = mostCommonValue(valueList)
-        return DTreeNode(MCV)
+        return dTreeNode(MCV)
 
-    bestA = bestAttribute(dataset, attributes, valueList, typeDict)
+    bestA = bestAttribute(dataset, attributes, valueList)
+
+# bestAttribute
+# Calculates the best attribute
+# @param:
+#	dataset-> a list of dictionary containing the training data
+#	attributes -> a dictionary containing the attirubtes and their type
+def bestAttribute(dataset, attributes, valueList, typeDict)
 
 
 # Entropy
