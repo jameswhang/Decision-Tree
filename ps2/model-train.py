@@ -1,5 +1,159 @@
 # model-train.py
-# trains the data
+# generates a decision tree based on training set of data
+# uses the ID3 Algorithm (1997 Mitchell)
+# written by James Whang
+#
 
-# TODO implement
+import sys
+import math
+from collections import namedtuple
 
+DTreeNode = namedtuple("BTreeNode", "sign")
+
+# GenerateDTree
+# Generates a Decision Tree
+# @param:
+#   dataset -> a list of dictionary containing attributes
+# def GenerateDTree(dataset):
+
+
+# Entropy
+# Calculates the entropy of a set
+def Entropy(listAttr):
+    pPos = positiveProp(listAttr)
+    pNeg = negativeProp(listAttr)
+    return pPos * -1 * math.log(pPos, 2) + pNeg * -1 * math.log(pNeg, 2)
+
+
+# IGain
+# Computes the information gain of an attribute
+# @param
+#   S -> Set of data (given as a list of dictionary)
+#   attr -> attribute (given as string)
+def IGain(S, attr, attrDict):
+    e1 = Entropy(S)
+    sumSubsetEntropy = 0
+    if attrDict[attr] == 'c':
+        subsets, knownVals = makeSubsetsDiscrete(S, attr)
+        for i in knownVals.keys():
+            p_i = knownVals[i] / len(S)
+            s_i = []
+            for index in subsets[i]:
+                s_i.append(S[i])
+            ent_i = Entropy(s_i)
+            sumSubsetEntropy += (ent_i * p_i)
+        return e1 - sumSubsetEntropy
+    else:
+        N = int(raw_input('Found a continuous value for attribute' + attr +
+                          '. How many subsets? '))
+        subsets, knownVals = makeSubsetsContinuous(S, attr, N)
+        for i in knownVals.keys():
+            p_i = knownVals[i] / len(S)
+            s_i = []
+            for index in subsets[i]:
+                s_i.append(S[i])
+                ent_i = Entropy(s_i)
+                sumSubsetEntropy += (ent_i * p_i)
+        return e1 - sumSubsetEntropy
+
+
+# makeSubsetsDiscrete
+# Helper function that generates subsets to be put into IGain
+# Works on discrete attributes only
+# @param
+#   S -> Set of data (given as an attribute
+#   attr -> attribute (given as a string)
+# @return
+#   subsets
+#   Dictionary of type:
+#   value of attr -> list of indices of S matching this value
+#   value of attr -> number of sets
+def makeSubsetsDiscrete(S, attr):
+    knownVals = {}
+    subsets = {}
+    i = 0
+    for entry in S:
+        val = entry[attr]
+        if val in knownVals.keys():
+            knownVals[val] = knownVals[val] + 1
+            subsets[val] = subsets[val].append(i)
+        else:
+            knownVals[val] = 1
+            subsets[val] = [i]
+        i += 1
+    return subsets, knownVals
+
+
+# makeSubsetsContinuous
+# Helper function that generates subsets to be put into IGain
+# Works on discrete attributes only
+# @param
+#   S -> Set of data (given as an attribute
+#   attr -> attribute (given as a string)
+#   N -> Number of subsets (given as int)
+# @return
+#   subsets
+#   Dictionary of type:
+#   value of attr -> list of indices of S matching this value
+#   value of attr -> number of sets
+def makeSubsetsContinuous(S, attr, N):
+    knownVals = {}
+    subsets = {}
+    i = 0
+    minVal = sys.maxint
+    maxVal = sys.minint
+    for entry in S:
+        val = entry[attr]
+        if val < minVal:
+            minVal = val
+        if val > maxVal:
+            maxVal = val
+    thres = (maxVal - minVal) / N
+
+    lowerBound = minVal
+    bounds = []
+    for i in range(N):
+        subsets[lowerBound] = []
+        knownVals[lowerBound] = 0
+        bounds.append(lowerBound)
+        lowerBound += thres
+
+    j = 0
+    for entry in S:
+        val = entry[attr]
+        for i in range(len(bounds)):
+            if val > bounds[i] and val < bounds[i+1]:
+                subsets[bounds[i]] = subsets[bounds[i]].append(j)
+                knownVals[bounds[i]] = knownVals[bounds[i]] + 1
+
+    return subsets, knownVals
+
+
+# positiveProp
+# calculates the proportion of positive examples in a set
+# @param:
+#   setAttr -> list of dictionary of attributes
+# @return:
+#   count -> double
+def positiveProp(listAttr):
+    count = 0
+    lenAttr = len(listAttr)
+    for attr in listAttr:
+        if attr['winner'] == 1:
+            count += 1
+    return count/lenAttr
+
+
+# negativeProp
+# calculates the proportion of negative examples in a set
+# @param:
+#   setAttr -> list of dictionary of attributes
+# @return:
+#   count -> integer
+def negativeProp(listAttr):
+    count = 0
+    lenAttr = len(listAttr)
+    for attr in listAttr:
+        if attr['winner'] == 0:
+            count += 1
+    return count/lenAttr

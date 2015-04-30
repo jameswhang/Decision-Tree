@@ -19,30 +19,32 @@ def main():
         inputFile = sys.argv[2]
         inputFileContent = open(inputFile)
         firstLine = True
+        attributes = {}
         for line in inputFileContent:
             if firstLine:
+                attrs = line.split(',')
+                for attr in attrs:
+                    if attrs[len(attrs)-1] == attr:
+                        break
+                    attr = attr.replace(' ', '')
+                    attrType = raw_input('Found an attr, ' + attr + '. Type? ')
+                    attributes[attr] = attrType
                 firstLine = False
                 continue
             line = line.replace('\n', '')
             newData = line.split(',')
-            newDict = {
-                'winPercentageA': newData[0],
-                'winPercentageB': newData[1],
-                'weather': newData[2],
-                'temperature': newData[3],
-                'numInjuriesA': newData[4],
-                'numInjuriesB': newData[5],
-                'startPitcherA': newData[6],
-                'startPitcherB': newData[7],
-                'daysSinceLastGameA': newData[8],
-                'daysSinceLastGameB': newData[9],
-                'homeForA': newData[10],
-                'runDifferentialA': newData[11],
-                'runDifferentialB': newData[12],
-                'winner': newData[13]
-            }
+            i = 0
+            newDict = {}
+            attr_keys = attributes.keys()
+            for data in newData:
+                if i == len(newData) - 1:
+                    break
+                newDict[attr_keys[i]] = newData[i]
+                i += 1
+            # print newDict
             allDataSet.append(newDict)
     print allDataSet[0]
+    print attributes
 
 
 # wrong usage
