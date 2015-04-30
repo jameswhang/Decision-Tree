@@ -10,11 +10,23 @@ from collections import namedtuple
 
 DTreeNode = namedtuple("BTreeNode", "sign")
 
+
 # GenerateDTree
 # Generates a Decision Tree
 # @param:
-#   dataset -> a list of dictionary containing attributes
-# def GenerateDTree(dataset):
+#   dataset -> a list of dictionary containing training data
+#   attributes -> a dictionary containing the attributes and the type
+def GenerateDTree(dataset, attributes, valueList, typeDict):
+    if allPositive(valueList):
+        return DTreeNode(1)
+    elif allNegative(valueList):
+        return DTreeNode(0)
+
+    if len(attributes) == 0:  # or len(dataset)minimum allowed per branch
+        MCV = mostCommonValue(valueList)
+        return DTreeNode(MCV)
+
+    bestA = bestAttribute(dataset, attributes, valueList, typeDict)
 
 
 # Entropy
@@ -25,12 +37,12 @@ def Entropy(listAttr):
     return pPos * -1 * math.log(pPos, 2) + pNeg * -1 * math.log(pNeg, 2)
 
 
-# IGain
-# Computes the information gain of an attribute
+# Gain
+# Computes the gain of an attribute
 # @param
 #   S -> Set of data (given as a list of dictionary)
 #   attr -> attribute (given as string)
-def IGain(S, attr, attrDict):
+def Gain(S, attr, attrDict):
     e1 = Entropy(S)
     sumSubsetEntropy = 0
     if attrDict[attr] == 'c':
@@ -157,3 +169,35 @@ def negativeProp(listAttr):
         if attr['winner'] == 0:
             count += 1
     return count/lenAttr
+
+
+# Given a list of values, return True if they're all 1
+# otherwise, return False
+def allPositive(valueList):
+    for i in range(valueList):
+        if valueList[i] != 1:
+            return False
+    return True
+
+
+def allNegative(valueList):
+    for i in range(valueList):
+        if valueList[i] != 0:
+            return False
+    return True
+
+
+def mostCommonValue(valueList):
+    values = {}
+    for i in range(len(valueList)):
+        if valueList[i] in values.keys():
+            values[valueList[i]] = values[valueList[i]] + 1
+        else:
+            values[valueList[i]] = 0
+
+    candidates = values.keys()
+    MCV = values[candidates[0]]
+    for i in range(len(candidates)):
+        if MCV < values[candidates[i]]:
+            MCV = values[candidates[i]]
+    return MCV

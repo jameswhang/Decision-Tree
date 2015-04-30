@@ -9,7 +9,7 @@ import sys
 
 # main function
 def main():
-    allDataSet = []
+
     if len(sys.argv) < 3:
         WrongUsage()
         sys.exit()
@@ -20,14 +20,19 @@ def main():
         inputFileContent = open(inputFile)
         firstLine = True
         attributes = {}
+        allDataSet = []
+        valueList = []
         for line in inputFileContent:
             if firstLine:
                 attrs = line.split(',')
                 for attr in attrs:
-                    if attrs[len(attrs)-1] == attr:
+                    attr = attr.replace('\n', '')
+                    if attr == attrs[len(attrs) - 1]:
                         break
+                    attrType = raw_input('Found an attr, ' + attr +
+                                         '. Type? [n: numeral, ' +
+                                         'm: nominal, v: value] : ')
                     attr = attr.replace(' ', '')
-                    attrType = raw_input('Found an attr, ' + attr + '. Type? ')
                     attributes[attr] = attrType
                 firstLine = False
                 continue
@@ -37,14 +42,15 @@ def main():
             newDict = {}
             attr_keys = attributes.keys()
             for data in newData:
-                if i == len(newData) - 1:
-                    break
-                newDict[attr_keys[i]] = newData[i]
+                if i == (len(newData) - 1):
+                    valueList.append(newData[i])
+                newDict[attr_keys[i]] = float(newData[i])
                 i += 1
             # print newDict
             allDataSet.append(newDict)
     print allDataSet[0]
     print attributes
+    print valueList
 
 
 # wrong usage
