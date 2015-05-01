@@ -59,31 +59,35 @@ def main():
             if doAppend:
                 # print newDict
                 allDataSet.append(newDict)
-    # print allDataSet[0]
-    # print attributes
-    # print valueList
-    allDataSet = preprocessData(allDataSet)
+    allDataSet = preprocessData(allDataSet, attributes)
     attributeList = attributes.keys()
-    # print attributeList
     tree = train.GenerateDTree(allDataSet, attributeList, attributes, valueList)
     tree.printTree()
 
 
 # preProcess
-def preprocessData(allDataSet):
+def preprocessData(allDataSet, attrDict):
     newDataSet = []
     averages = {}
+    mcvs = {}
     for entry in allDataSet:
         entry = entry.copy()
         for key in entry.keys():
             if entry[key] == '?':
-                if key in averages.keys():
-                    entry[key] = averages[key]
+                if attrDict[key] == 'c':
+                    if key in averages.keys():
+                        entry[key] = averages[key]
+                    else:
+                        avg = findAverage(allDataSet, key)
+                        averages[key] = avg
+                        entry[key] = avg
                 else:
-                    avg = findAverage(allDataSet, key)
-                    averages[key] = avg
-                    entry[key] = avg
-                
+                    if key in mcvs.keys():
+                        entry[key] = mcvs[key]
+                    else:
+                        mcv = mostCommonValue(allDataSet, key)
+                        mcvs[key] = mcv
+                        entry[key] = mcv
         #print entry
         newDataSet.append(entry)
     writer = csv.writer(open('ppdata.csv', 'wb'))
@@ -92,6 +96,22 @@ def preprocessData(allDataSet):
             writer.writerow([key, value])
     return newDataSet
 
+def mostCommonValue(allDataSet, key):
+    countDict = {}
+    for entry in allDataSet:
+        for entryKey in entry.keys():
+            if entryKey == key and entry[key] != '?':
+                if entry[key] in countDict.keys():
+                    countDict[entry[key]] += 1
+                else:
+                    countDict[entry[key]] = 1
+    maxCount = 0
+    mcv = ''
+    for k in countDict.keys():
+        if countDict[k] > maxCount:
+            mck = k
+            maxCount = countDict[k]
+    return mcv
 
 def findAverage(allDataSet, key):
     sumValue = 0

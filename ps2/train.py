@@ -25,7 +25,7 @@ class dTreeNode():
 
     def addBranch(self, cond, subtree=''):
         subtree.printTree
-        self.info['branch'][cond] = subtree
+        self.info['branch'][cond] = subtree.info
 
     def setDecision(self, bestA):
         self.info['decision'] = bestA
@@ -34,7 +34,9 @@ class dTreeNode():
     #    self.info['subset'] = subset
 
     def printTree(self):
-        pp = pprint.PrettyPrinter(indent=4)
+        fout = open('result.txt', 'w')
+        pp = pprint.PrettyPrinter(indent=4, stream=fout)
+        #pprint(self.info, fout)
         pp.pprint(self.info)
 
 
@@ -135,7 +137,7 @@ def bestAttribute(dataset, attrList, attrDict, valueList):
         thread.join()
 
     for attr in g_gain.keys():
-        if abs(g_gain[attr]) > abs(maxGain):
+        if g_gain[attr] > maxGain:
             bAttr = attr
             maxGain = g_gain[attr]
 
@@ -148,6 +150,8 @@ def bestAttribute(dataset, attrList, attrDict, valueList):
 def Entropy(listAttr, listValue):
     pPos = positiveProp(listAttr, listValue)
     pNeg = negativeProp(listAttr, listValue)
+    #print pPos
+    #print pNeg
     if pPos == 0:
         return pNeg * -1 * log(pNeg, 2)
     elif pNeg == 0:
