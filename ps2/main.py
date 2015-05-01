@@ -62,7 +62,7 @@ def main():
     # print valueList
     allDataSet = preprocessData(allDataSet)
     tree = train.GenerateDTree(allDataSet, attributes, valueList)
-    print tree
+    tree.printTree()
 
 
 # preProcess

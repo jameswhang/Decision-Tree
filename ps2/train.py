@@ -7,6 +7,7 @@ from __future__ import division
 import sys
 from math import log
 from collections import namedtuple
+import pprint
 
 DTreeNode = namedtuple("BTreeNode", "sign")
 
@@ -19,10 +20,14 @@ class dTreeNode():
         self.info['children'] = []
 
     def addBranch(self, node):
-        self.info['children'].append(node)
+        self.info['children'].append(node.info)
 
     def setDecision(self, bestA):
         self.info['decision'] = bestA
+
+    def printTree(self):
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(self.info)
 
 
 # GenerateDTree
