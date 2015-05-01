@@ -2,10 +2,10 @@
 # generates a decision tree based on training set of data
 # uses the ID3 Algorithm (1997 Mitchell)
 # written by James Whang
-#
 
+from __future__ import division
 import sys
-import math
+from math import log
 from collections import namedtuple
 
 DTreeNode = namedtuple("BTreeNode", "sign")
@@ -71,7 +71,7 @@ def bestAttribute(dataset, attrDict, valueList):
     maxGain = 0
     bAttr = ""
     for attr in attrDict.keys():
-        tGain = Gain(dataset, attr, attrDict)
+        tGain = Gain(dataset, attr, attrDict, valueList)
         if tGain > maxGain:
             bAttr = attr
             maxGain = tGain
@@ -80,10 +80,12 @@ def bestAttribute(dataset, attrDict, valueList):
 
 # Entropy
 # Calculates the entropy of a set
-def Entropy(listAttr):
-    pPos = positiveProp(listAttr)
-    pNeg = negativeProp(listAttr)
-    return pPos * -1 * math.log(pPos, 2) + pNeg * -1 * math.log(pNeg, 2)
+def Entropy(listAttr, listValue):
+    pPos = positiveProp(listAttr, listValue)
+    pNeg = negativeProp(listAttr, listValue)
+    print pNeg
+    print pPos
+    return pPos * -1 * log(pPos, 2) + pNeg * -1 * log(pNeg, 2)
 
 
 # Gain
@@ -91,17 +93,19 @@ def Entropy(listAttr):
 # @param
 #   S -> Set of data (given as a list of dictionary)
 #   attr -> attribute (given as string)
-def Gain(S, attr, attrDict):
-    e1 = Entropy(S)
+def Gain(S, attr, attrDict, listValue):
+    e1 = Entropy(S, listValue)
     sumSubsetEntropy = 0
-    if attrDict[attr] == 'c':
+    if attrDict[attr] == 'd':
         subsets, knownVals = makeSubsetsDiscrete(S, attr)
         for i in knownVals.keys():
             p_i = knownVals[i] / len(S)
             s_i = []
+            val_i = []
             for index in subsets[i]:
                 s_i.append(S[i])
-            ent_i = Entropy(s_i)
+                val_i.append(listValue[i])
+            ent_i = Entropy(s_i, val_i)
             sumSubsetEntropy += (ent_i * p_i)
         return e1 - sumSubsetEntropy
     else:
@@ -111,10 +115,12 @@ def Gain(S, attr, attrDict):
         for i in knownVals.keys():
             p_i = knownVals[i] / len(S)
             s_i = []
+            val_i = []
             for index in subsets[i]:
                 s_i.append(S[i])
-                ent_i = Entropy(s_i)
-                sumSubsetEntropy += (ent_i * p_i)
+                val_i.append(listValue[i])
+            ent_i = Entropy(s_i)
+            sumSubsetEntropy += (ent_i * p_i)
         return e1 - sumSubsetEntropy
 
 
@@ -137,6 +143,8 @@ def makeSubsetsDiscrete(S, attr):
         val = entry[attr]
         if val in knownVals.keys():
             knownVals[val] = knownVals[val] + 1
+            print attr
+            print subsets
             subsets[val] = subsets[val].append(i)
         else:
             knownVals[val] = 1
@@ -162,13 +170,14 @@ def makeSubsetsContinuous(S, attr, N):
     subsets = {}
     i = 0
     minVal = sys.maxint
-    maxVal = sys.minint
+    maxVal = -sys.maxint+1
     for entry in S:
         val = entry[attr]
         if val < minVal:
             minVal = val
         if val > maxVal:
             maxVal = val
+    print str(maxVal - minVal)
     thres = (maxVal - minVal) / N
 
     lowerBound = minVal
@@ -193,16 +202,18 @@ def makeSubsetsContinuous(S, attr, N):
 # positiveProp
 # calculates the proportion of positive examples in a set
 # @param:
-#   setAttr -> list of dictionary of attributes
+#   listAttr -> list of dictionary of attributes
 # @return:
 #   count -> double
-def positiveProp(listAttr):
+def positiveProp(listData, valueList):
     count = 0
-    lenAttr = len(listAttr)
-    for attr in listAttr:
-        if attr['winner'] == 1:
+    tSize = len(listData)
+    for i in range(len(listData)):
+        if valueList[i] == 1:
             count += 1
-    return count/lenAttr
+    print count
+    print tSize
+    return count/tSize
 
 
 # negativeProp
@@ -211,26 +222,26 @@ def positiveProp(listAttr):
 #   setAttr -> list of dictionary of attributes
 # @return:
 #   count -> integer
-def negativeProp(listAttr):
+def negativeProp(listData, valueList):
     count = 0
-    lenAttr = len(listAttr)
-    for attr in listAttr:
-        if attr['winner'] == 0:
+    tSize = len(listData)
+    for i in range(len(listData)):
+        if valueList[i] == 1:
             count += 1
-    return count/lenAttr
+    return count/tSize
 
 
 # Given a list of values, return True if they're all 1
 # otherwise, return False
 def allPositive(valueList):
-    for i in range(valueList):
+    for i in range(len(valueList)):
         if valueList[i] != 1:
             return False
     return True
 
 
 def allNegative(valueList):
-    for i in range(valueList):
+    for i in range(len(valueList)):
         if valueList[i] != 0:
             return False
     return True
