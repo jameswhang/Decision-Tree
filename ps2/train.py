@@ -70,6 +70,7 @@ def findGainThreads(data, attr, attrDict, valueList):
 #   dataset -> a list of dictionary containing training data
 #   attributes -> a dictionary containing the attributes and the type
 def GenerateDTree(dataset, attrList, attrDict, valueList):
+    print "#CALLED#"
     root = dTreeNode()
     if allPositive(valueList):
         root.setLabel(1)
@@ -83,10 +84,11 @@ def GenerateDTree(dataset, attrList, attrDict, valueList):
         return dTreeNode(MCV)
 
     bestAttr = bestAttribute(dataset, attrList, attrDict, valueList)
-    newAttrList = attrList
+    print "###BEFORE###"
+    print attrList
+
     if bestAttr == '':
-        bestAttr = newAttrList[0]  # Choosing arbitrary value when there isn't any.
-    newAttrList.remove(bestAttr)
+        bestAttr = attrList[0]  # Choosing arbitrary value when there isn't any.
 
     root.setDecision(bestAttr)
     if attrDict[bestAttr] == 'c':
@@ -96,13 +98,17 @@ def GenerateDTree(dataset, attrList, attrDict, valueList):
 
     #root.setSubset(subsets)
     for possibleVal in subsets.keys():
+        newAttrList = attrList
         if knownVals[possibleVal] != 0:
             newSet = []
             newValList = []
             for i in subsets[possibleVal]:
                 newSet.append(dataset[i])
                 newValList.append(valueList[i])
-            
+            print "###AFTER###"
+            print bestAttr
+            print newAttrList
+            newAttrList.remove(bestAttr)
             newNode = GenerateDTree(newSet, newAttrList, attrDict, newValList)
             root.addBranch(possibleVal, newNode)
         else:

@@ -109,8 +109,10 @@ def mostCommonValue(allDataSet, key):
     mcv = ''
     for k in countDict.keys():
         if countDict[k] > maxCount:
-            mck = k
+            mcv = k
             maxCount = countDict[k]
+   # print countDict
+    #print maxCount
     return mcv
 
 def findAverage(allDataSet, key):
