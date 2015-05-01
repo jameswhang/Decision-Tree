@@ -14,13 +14,15 @@ DTreeNode = namedtuple("BTreeNode", "sign")
 # CLASS DTREENODE
 class dTreeNode():
     def __init__(self, label='none'):
-        self.label = label
+        self.info = {}
+        self.info['label'] = label
+        self.info['children'] = []
 
-    def branchOut(self, node):
-        self.branch = node
+    def addBranch(self, node):
+        self.info['children'].append(node)
 
     def setDecision(self, bestA):
-        self.decision = bestA
+        self.info['decision'] = bestA
 
 
 # GenerateDTree
@@ -29,6 +31,8 @@ class dTreeNode():
 #   dataset -> a list of dictionary containing training data
 #   attributes -> a dictionary containing the attributes and the type
 def GenerateDTree(dataset, attrDict, valueList):
+    print dataset
+    print valueList
     if allPositive(valueList):
         return dTreeNode(1)
     elif allNegative(valueList):
@@ -39,6 +43,7 @@ def GenerateDTree(dataset, attrDict, valueList):
         return dTreeNode(MCV)
 
     bestAttr = bestAttribute(dataset, attrDict, valueList)
+    print bestAttr
     returnNode = dTreeNode()
     returnNode.setDecision(bestAttr)
 
@@ -48,10 +53,10 @@ def GenerateDTree(dataset, attrDict, valueList):
         subsets, knownVals = makeSubsetsDiscrete(dataset, bestAttr)
 
     for possibleVal in subsets.keys():
-        if len(knownVals[possibleVal]) != 0:
+        if knownVals[possibleVal] != 0:
             newSet = []
             newValList = []
-            for i in knownVals[possibleVal]:
+            for i in subsets[possibleVal]:
                 newSet.append(dataset[i])
                 newValList.append(valueList[i])
             newNode = GenerateDTree(newSet, attrDict, newValList)
@@ -68,14 +73,18 @@ def GenerateDTree(dataset, attrDict, valueList):
 # @ret:
 #   bAttr -> the best attribute (string)
 def bestAttribute(dataset, attrDict, valueList):
+    print dataset
+    print attrDict
+    print "LOLOLOL"
     maxGain = 0
     bAttr = ""
     for attr in attrDict.keys():
         tGain = Gain(dataset, attr, attrDict, valueList)
-        if tGain > maxGain:
+        if abs(tGain) > abs(maxGain):
             bAttr = attr
             maxGain = tGain
-            return bAttr
+    print bAttr
+    return bAttr
 
 
 # Entropy
@@ -83,9 +92,12 @@ def bestAttribute(dataset, attrDict, valueList):
 def Entropy(listAttr, listValue):
     pPos = positiveProp(listAttr, listValue)
     pNeg = negativeProp(listAttr, listValue)
-    print pNeg
-    print pPos
-    return pPos * -1 * log(pPos, 2) + pNeg * -1 * log(pNeg, 2)
+    if pPos == 0:
+        return pNeg * -1 * log(pNeg, 2)
+    elif pNeg == 0:
+        return pPos * -1 * log(pPos, 2)
+    else:
+        return pPos * -1 * log(pPos, 2) + pNeg * -1 * log(pNeg, 2)
 
 
 # Gain
@@ -103,8 +115,8 @@ def Gain(S, attr, attrDict, listValue):
             s_i = []
             val_i = []
             for index in subsets[i]:
-                s_i.append(S[i])
-                val_i.append(listValue[i])
+                s_i.append(S[index])
+                val_i.append(listValue[index])
             ent_i = Entropy(s_i, val_i)
             sumSubsetEntropy += (ent_i * p_i)
         return e1 - sumSubsetEntropy
@@ -117,10 +129,11 @@ def Gain(S, attr, attrDict, listValue):
             s_i = []
             val_i = []
             for index in subsets[i]:
-                s_i.append(S[i])
-                val_i.append(listValue[i])
-            ent_i = Entropy(s_i)
-            sumSubsetEntropy += (ent_i * p_i)
+                s_i.append(S[index])
+                val_i.append(listValue[index])
+            if len(s_i) != 0:
+                ent_i = Entropy(s_i, val_i)
+                sumSubsetEntropy += (ent_i * p_i)
         return e1 - sumSubsetEntropy
 
 
@@ -142,10 +155,8 @@ def makeSubsetsDiscrete(S, attr):
     for entry in S:
         val = entry[attr]
         if val in knownVals.keys():
-            knownVals[val] = knownVals[val] + 1
-            print attr
-            print subsets
-            subsets[val] = subsets[val].append(i)
+            knownVals[val] += 1
+            subsets[val].append(i)
         else:
             knownVals[val] = 1
             subsets[val] = [i]
@@ -177,7 +188,6 @@ def makeSubsetsContinuous(S, attr, N):
             minVal = val
         if val > maxVal:
             maxVal = val
-    print str(maxVal - minVal)
     thres = (maxVal - minVal) / N
 
     lowerBound = minVal
@@ -192,9 +202,13 @@ def makeSubsetsContinuous(S, attr, N):
     for entry in S:
         val = entry[attr]
         for i in range(len(bounds)):
-            if val > bounds[i] and val < bounds[i+1]:
-                subsets[bounds[i]] = subsets[bounds[i]].append(j)
-                knownVals[bounds[i]] = knownVals[bounds[i]] + 1
+            if i == (len(bounds) - 1):
+                subsets[bounds[i]].append(j)
+                knownVals[bounds[i]] += 1
+            elif val > bounds[i] and val < bounds[i+1]:
+                subsets[bounds[i]].append(j)
+                knownVals[bounds[i]] += 1
+        j += 1
 
     return subsets, knownVals
 
@@ -211,8 +225,6 @@ def positiveProp(listData, valueList):
     for i in range(len(listData)):
         if valueList[i] == 1:
             count += 1
-    print count
-    print tSize
     return count/tSize
 
 
@@ -226,7 +238,7 @@ def negativeProp(listData, valueList):
     count = 0
     tSize = len(listData)
     for i in range(len(listData)):
-        if valueList[i] == 1:
+        if valueList[i] == 0:
             count += 1
     return count/tSize
 

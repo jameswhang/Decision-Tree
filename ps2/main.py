@@ -5,6 +5,7 @@
 # written by James Whang
 
 import sys
+import csv
 import train
 
 # main function
@@ -72,9 +73,10 @@ def preprocessData(allDataSet):
             if entry[key] == '?':
                 entry[key] = findAverage(allDataSet, key)
         newDataSet.append(entry)
-    fa = open('ppdata.csv', 'w')
-    fa.write(newDataSet)
-    fa.close()
+    writer = csv.writer(open('ppdata.csv', 'wb'))
+    for entry in newDataSet:
+        for key, value in entry.items():
+            writer.writerow([key, value])
     return newDataSet
 
 
