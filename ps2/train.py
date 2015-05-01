@@ -8,6 +8,7 @@ import sys
 from math import log
 from collections import namedtuple
 import pprint
+import threading
 
 DTreeNode = namedtuple("BTreeNode", "sign")
 
@@ -17,17 +18,48 @@ class dTreeNode():
     def __init__(self, label='none'):
         self.info = {}
         self.info['label'] = label
-        self.info['children'] = []
+        self.info['branch'] = {}
 
-    def addBranch(self, node):
-        self.info['children'].append(node.info)
+    def setLabel(self, label):
+        self.info['label'] = label
+
+    def addBranch(self, cond, subtree=''):
+        subtree.printTree
+        self.info['branch'][cond] = subtree
 
     def setDecision(self, bestA):
         self.info['decision'] = bestA
 
+    #def setSubset(self, subset):
+    #    self.info['subset'] = subset
+
     def printTree(self):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(self.info)
+
+
+threadLock = threading.Lock()
+g_gain = {}
+
+class myThread(threading.Thread):
+    def __init__(self, threadID, dataSet, attr, attrDict, valueList):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.data = dataSet
+        self.attr = attr
+        self.attrDict = attrDict
+        self.valueList = valueList
+
+    def run(self):
+        findGainThreads(self.data, self.attr, self.attrDict, self.valueList)
+
+
+
+def findGainThreads(data, attr, attrDict, valueList):
+    global g_gain
+    threadLock.acquire()
+    g_gain[attr] = Gain(data, attr, attrDict, valueList)
+    threadLock.release()
 
 
 # GenerateDTree
@@ -35,28 +67,32 @@ class dTreeNode():
 # @param:
 #   dataset -> a list of dictionary containing training data
 #   attributes -> a dictionary containing the attributes and the type
-def GenerateDTree(dataset, attrDict, valueList):
-    print dataset
-    print valueList
+def GenerateDTree(dataset, attrList, attrDict, valueList):
+    root = dTreeNode()
     if allPositive(valueList):
-        return dTreeNode(1)
+        root.setLabel(1)
+        return root
     elif allNegative(valueList):
-        return dTreeNode(0)
+        root.setLabel(0)
+        return root
 
-    if len(attrDict) == 0:  # or len(dataset)minimum allowed per branch
+    if len(attrList) == 0:  # or len(dataset)minimum allowed per branch
         MCV = mostCommonValue(valueList)
         return dTreeNode(MCV)
 
-    bestAttr = bestAttribute(dataset, attrDict, valueList)
-    print bestAttr
-    returnNode = dTreeNode()
-    returnNode.setDecision(bestAttr)
+    bestAttr = bestAttribute(dataset, attrList, attrDict, valueList)
+    newAttrList = attrList
+    if bestAttr == '':
+        bestAttr = newAttrList[0]  # Choosing arbitrary value when there isn't any.
+    newAttrList.remove(bestAttr)
 
+    root.setDecision(bestAttr)
     if attrDict[bestAttr] == 'c':
-        subsets, knownVals = makeSubsetsContinuous(dataset, bestAttr, 10)
+        subsets, knownVals = makeSubsetsContinuous(dataset, bestAttr, 5)
     else:
         subsets, knownVals = makeSubsetsDiscrete(dataset, bestAttr)
 
+    #root.setSubset(subsets)
     for possibleVal in subsets.keys():
         if knownVals[possibleVal] != 0:
             newSet = []
@@ -64,9 +100,15 @@ def GenerateDTree(dataset, attrDict, valueList):
             for i in subsets[possibleVal]:
                 newSet.append(dataset[i])
                 newValList.append(valueList[i])
-            newNode = GenerateDTree(newSet, attrDict, newValList)
-            returnNode.addBranch(newNode)
-    return returnNode
+            
+            newNode = GenerateDTree(newSet, newAttrList, attrDict, newValList)
+            root.addBranch(possibleVal, newNode)
+        else:
+            MCV = mostCommonValue(valueList)
+            newNode = dTreeNode(MCV)
+            root.addBranch(possibleVal, newNode)
+
+    return root
 
 
 # bestAttribute
@@ -77,18 +119,27 @@ def GenerateDTree(dataset, attrDict, valueList):
 #   valueList -> a list of values of the classification
 # @ret:
 #   bAttr -> the best attribute (string)
-def bestAttribute(dataset, attrDict, valueList):
-    print dataset
-    print attrDict
-    print "LOLOLOL"
+def bestAttribute(dataset, attrList, attrDict, valueList):
+    global g_gain
+    attrDict = attrDict.copy()
     maxGain = 0
     bAttr = ""
-    for attr in attrDict.keys():
-        tGain = Gain(dataset, attr, attrDict, valueList)
-        if abs(tGain) > abs(maxGain):
+    threads = []
+    for i in range(len(attrList)):
+        threads.append(myThread(i, dataset, attrList[i], attrDict, valueList))
+
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    for attr in g_gain.keys():
+        if abs(g_gain[attr]) > abs(maxGain):
             bAttr = attr
-            maxGain = tGain
-    print bAttr
+            maxGain = g_gain[attr]
+
+    g_gain = {}
     return bAttr
 
 
@@ -111,6 +162,7 @@ def Entropy(listAttr, listValue):
 #   S -> Set of data (given as a list of dictionary)
 #   attr -> attribute (given as string)
 def Gain(S, attr, attrDict, listValue):
+    attrDict = attrDict.copy()
     e1 = Entropy(S, listValue)
     sumSubsetEntropy = 0
     if attrDict[attr] == 'd':
@@ -158,6 +210,7 @@ def makeSubsetsDiscrete(S, attr):
     subsets = {}
     i = 0
     for entry in S:
+        entry = entry.copy()
         val = entry[attr]
         if val in knownVals.keys():
             knownVals[val] += 1
@@ -205,6 +258,7 @@ def makeSubsetsContinuous(S, attr, N):
 
     j = 0
     for entry in S:
+        entry = entry.copy()  # without this, Python modifies the dictionary
         val = entry[attr]
         for i in range(len(bounds)):
             if i == (len(bounds) - 1):
@@ -267,10 +321,11 @@ def allNegative(valueList):
 def mostCommonValue(valueList):
     values = {}
     for i in range(len(valueList)):
-        if valueList[i] in values.keys():
-            values[valueList[i]] = values[valueList[i]] + 1
+        item = valueList[i]
+        if item in values.keys():
+            values[item] = values[item] + 1
         else:
-            values[valueList[i]] = 0
+            values[item] = 0
 
     candidates = values.keys()
     MCV = values[candidates[0]]
