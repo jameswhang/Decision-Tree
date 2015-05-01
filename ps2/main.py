@@ -124,7 +124,7 @@ def findAverage(allDataSet, key):
                     unknowns += 1
                 else:
                     sumValue += val
-    return sumValue/len(allDataSet)
+    return sumValue/(len(allDataSet)-unknowns)
 
 
 # wrong usage
