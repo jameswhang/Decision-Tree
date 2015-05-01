@@ -62,7 +62,10 @@ def main():
     allDataSet = preprocessData(allDataSet, attributes)
     attributeList = attributes.keys()
     tree = train.GenerateDTree(allDataSet, attributeList, attributes, valueList)
-    tree.printTree()
+    tree.saveTree()
+    #print allDataSet[0:2]
+    valid = tree.validate(allDataSet[0:2])
+    print valid
 
 
 # preProcess

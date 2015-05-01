@@ -24,7 +24,7 @@ class dTreeNode():
         self.info['label'] = label
 
     def addBranch(self, cond, subtree=''):
-        subtree.printTree
+        #subtree.printTree
         self.info['branch'][cond] = subtree.info
 
     def setDecision(self, bestA):
@@ -33,11 +33,35 @@ class dTreeNode():
     #def setSubset(self, subset):
     #    self.info['subset'] = subset
 
-    def printTree(self):
+    def saveTree(self):
         fout = open('result.txt', 'w')
         pp = pprint.PrettyPrinter(indent=4, stream=fout)
         #pprint(self.info, fout)
         pp.pprint(self.info)
+
+    def validate(self, vData):
+        valueList = []
+        for entry in vData:
+            val = self.traverse(entry, self)
+            valueList.append(val)
+        return valueList
+
+    def traverse(self, entry, root):
+        if type(root) is dict:
+            if root['branch'] == {}:
+                target = root['label']
+                return target
+            else:
+                val = entry[root['decision']]
+                for cond in root.keys():
+                    if val == cond:
+                        return self.traverse(entry, root['branch'][cond])
+        else: # this only happens with root node of the tree
+            val = entry[root.info['decision']]
+
+            for cond in root.info['branch'].keys():
+                if val == cond:
+                    return self.traverse(entry, root.info['branch'][cond])
 
 
 threadLock = threading.Lock()
@@ -95,7 +119,17 @@ def GenerateDTree(dataset, attrList, attrDict, valueList):
 
     for possibleVal in subsets.keys():
         newAttrList = attrList
-        if knownVals[possibleVal] != 0:
+        newSet = []
+        newValList = []
+        for i in subsets[possibleVal]:
+            newSet.append(dataset[i])
+            newValList.append(valueList[i])
+        if bestAttr in newAttrList:
+            newAttrList.remove(bestAttr)
+        newNode = GenerateDTree(newSet, newAttrList, attrDict, newValList)
+        root.addBranch(possibleVal, newNode)
+        '''
+        if len(subsets[possibleVal]) != 0:
             newSet = []
             newValList = []
             for i in subsets[possibleVal]:
@@ -109,6 +143,7 @@ def GenerateDTree(dataset, attrList, attrDict, valueList):
             MCV = mostCommonValue(valueList)
             newNode = dTreeNode(MCV)
             root.addBranch(possibleVal, newNode)
+        '''
 
     return root
 
@@ -332,8 +367,10 @@ def mostCommonValue(valueList):
             values[item] = 0
 
     candidates = values.keys()
-    MCV = values[candidates[0]]
+    MCV = 0
+    maxCount = 0
     for i in range(len(candidates)):
-        if MCV < values[candidates[i]]:
-            MCV = values[candidates[i]]
+        if maxCount < values[candidates[i]]:
+            maxCount = values[candidates[i]]
+            MCV = candidates[i]
     return MCV
