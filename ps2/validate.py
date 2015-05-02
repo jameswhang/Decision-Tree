@@ -12,7 +12,9 @@ def validate(tree, vData, expected, attrDict):
 			correct += 1
 	#	if expected[i] == 0:
 #			correct += 1
-	return correct/len(expected)
+	print "RESULT!!!!"
+	print correct/len(expected)
+
 
 
 def nFold(allData, expected, attrDict, N):

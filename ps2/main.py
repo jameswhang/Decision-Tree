@@ -8,13 +8,15 @@ import sys
 import csv
 import train
 import validate
+import prune
+import pickle
 
 # main function
 def main():
     if len(sys.argv) < 3:
         WrongUsage()
         sys.exit()
-    elif sys.argv[1] != '-f':
+    elif sys.argv[1] != '-t':
         WrongUsage()
     else:
         inputFile = sys.argv[2]
@@ -62,12 +64,25 @@ def main():
                 allDataSet.append(newDict)
     allDataSet = preprocessData(allDataSet, attributes)
     attributeList = attributes.keys()
-    #tree = train.GenerateDTree(allDataSet[0:2000], attributeList, attributes, valueList[0:2000])
-    #tree.saveTree()
-    #print allDataSet[0:2]
-    #c = validate.validate(tree, allDataSet[0:1000], valueList[0:1000], attributes)
-    #print c
-    validate.nFold(allDataSet[0:10000], valueList[0:10000], attributes, 10)
+    
+    inputPickle = open('savedTree.pkl', 'rb')
+    nTree = pickle.load(inputPickle)
+
+    inputPickle2 = open('savedTree.pk', 'rb')
+    pTree = pickle.load(inputPickle2)
+
+    validate.validate(nTree, allDataSet, valueList, attributes)
+    validate.validate(pTree, allDataSet, valueList, attributes)
+
+#    pTree = train.dTreeNode()
+#    pTree.info, someNum = prune.pruneWrapper(savedTree.info, allDataSet, valueList, attributes)
+#    pTree.saveTree()
+
+    #with open('prunedTree.pkl', 'wb') as output:
+    #    pickle.dump(pTree, output, pickle.HIGHEST_PROTOCOL)
+
+
+    #validate.nFold(allDataSet[0:10000], valueList[0:10000], attributes, 10)
 
 # preProcess
 def preprocessData(allDataSet, attrDict):
@@ -99,6 +114,7 @@ def preprocessData(allDataSet, attrDict):
         for key, value in entry.items():
             writer.writerow([key, value])
     return newDataSet
+
 
 def mostCommonValue(allDataSet, key):
     countDict = {}
@@ -135,7 +151,7 @@ def findAverage(allDataSet, key):
 
 # wrong usage
 def WrongUsage():
-    print "Usage: ./ps2 -f [input_file_path] -o [output_file_path] "
+    print "Usage: ./ps2 -t [training_file_path] -v [validate_file_path] "
 
 
 if __name__ == '__main__':

@@ -6,34 +6,74 @@ import validate
 import train
 
 def pruneWrapper(tree, dataset, expected, attrDict):
-    treeRoot = tree
-
-    acc = validate.validate(tree, dataset, expected, attrDict)
-
-
-
-
-def prune(root):
-    treeRoot = root
-    acc = perfCheck(treeRoot)  # accuracy without pruning
-
-    for branch in tree['branch']:
-
-
-    pruneOrNot = False    # when pruneOrNot is true, this means this child branch is a leaf node and therefore can be pruned
-    # terminatin condition
-    if len(root.branch) == 0:
-        return True, root
+    if len(tree['branch'].keys()) == 0:
+        val = tree['label']
+        sumVal = 0
+        for entry in expected:
+            if val == entry:
+                sumVal += 1
+        return tree, sumVal
     else:
-        branchLength = len(root.branch)
-        for i in range(branchLength):
-            pruneOrNot, child = prune(root.branch[i])  # child is necessary for undoing removal of a node
-            if pruneOrNot:
-                root.branch[i] = none
-                if (perfCheck(treeRoot) > acc):   # if accuracy better, update the accuracy measure
-                    acc = perfCheck(treeRoot)
-                else:                             # if accuracy worse, undo the removal of the child node and continue the loop
-                    root.addBranch(child)   
-        return False, root
+        if len(expected) == 0:
+            newLeaf = train.dTreeNode(1)
+            return newLeaf, 0
+        #print tree['decision']
+        if attrDict[tree['decision']] == 'c':
+            subsets, occurence = makeNewContinuousSubset(tree, dataset)
+        else:
+            subsets, occurence = train.makeSubsetsDiscrete(dataset, tree['decision'])
 
+        total = 0
+
+        for subset in subsets.keys():
+            labelSubset = []
+            dataSubset = []
+            for index in subsets[subset]:
+                dataSubset.append(dataset[index])
+                labelSubset.append(expected[index])
+            subtree, subAcc = pruneWrapper(tree['branch'][subset], dataSubset, labelSubset, attrDict)
+            tree['branch'][subset] = subtree
+            total += subAcc
+        totAcc = total / len(expected)
+        # validate, prune
+        prunedAcc = sum(expected) / len(expected)
+        leaf = 1
+        if prunedAcc < 0.5:
+            prunedAcc = 1 - prunedAcc
+            leaf = 0
+
+        if prunedAcc > totAcc:
+            newLeaf = train.dTreeNode(leaf)
+            return newLeaf, prunedAcc*len(expected)
+        else:
+            return tree, total
+
+def makeNewContinuousSubset(tree, dataset):
+    attr = tree['decision']
+    # make a subset again .. F
+    subsets = {}
+    knownVal = {}
+
+    if tree['decision'] == attr:
+        bins = tree['branch'].keys()
+        bins.sort()
+
+        for i in range(len(bins)):
+            subsets[bins[i]] = []
+            knownVal[bins[i]] = 0
+
+        for i in range(len(bins)):
+            for j in range(len(dataset)):
+                myValue = dataset[i][tree['decision']]
+                if i == 0 and bins[i] > myValue:
+                    subsets[bins[i]].append(j)
+                    knownVal[bins[i]] += 1
+                elif i == (len(bins) - 1):
+                    subsets[bins[i]].append(j)
+                    knownVal[bins[i]] += 1
+                elif bins[i] < myValue and bins[i+1] > myValue:
+                    subsets[bins[i]].append(j)
+                    knownVal[bins[i]] += 1
+
+    return subsets, knownVal
 

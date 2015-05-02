@@ -34,7 +34,7 @@ class dTreeNode():
     #    self.info['subset'] = subset
 
     def saveTree(self):
-        fout = open('result.txt', 'w')
+        fout = open('result-p.txt', 'w')
         pp = pprint.PrettyPrinter(indent=4, stream=fout)
         #pprint(self.info, fout)
         pp.pprint(self.info)
@@ -43,8 +43,8 @@ class dTreeNode():
         valueList = []
         for entry in vData:
             val = self.traverse(entry, self.info, attrDict)
-            if val == None:
-                val = 0
+            #if val == None:
+            #    val = 0
             valueList.append(val)
         return valueList
 
@@ -63,6 +63,8 @@ class dTreeNode():
                 for i in range(len(conds)):
                     if i == len(conds) - 1:
                         return self.traverse(entry, root['branch'][conds[i]], attrDict)
+                    elif i == 0 and val < conds[0]:
+                        return self.traverse(entry, root['branch'][conds[0]], attrDict)
                     elif val > conds[i] and conds[i+1] > val:
                         return self.traverse(entry, root['branch'][conds[i]], attrDict)
             else:
