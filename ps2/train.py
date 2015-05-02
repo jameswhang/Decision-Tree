@@ -33,8 +33,8 @@ class dTreeNode():
     #def setSubset(self, subset):
     #    self.info['subset'] = subset
 
-    def saveTree(self):
-        fout = open('result-p.txt', 'w')
+    def saveTree(self, oStream):
+        fout = open(oStream, 'w')
         pp = pprint.PrettyPrinter(indent=4, stream=fout)
         #pprint(self.info, fout)
         pp.pprint(self.info)

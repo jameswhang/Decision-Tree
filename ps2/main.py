@@ -23,7 +23,7 @@ def main():
         inputFileContent = open(inputFile)
         firstLine = True
         attributes = {}
-        allDataSet = []
+        trainData = []
         valueList = []
         attr_keys = []
         for line in inputFileContent:
@@ -34,8 +34,8 @@ def main():
                         break
                     attr = attr.replace('\n', '').replace(' ', '')
                     attrType = raw_input('Found an attr, ' + attr +
-                                         '. Type? [n: numeral, ' +
-                                         'm: nominal, v: value] : ')
+                                         '. Type? [c: continuous (numeral), ' +
+                                         'd: discrete(nominal)] : ')
                     attr = attr.replace(' ', '')
                     attributes[attr] = attrType.replace('\n', '')
                     attr_keys.append(attr)
@@ -61,28 +61,62 @@ def main():
                 i += 1
             if doAppend:
                 # print newDict
-                allDataSet.append(newDict)
-    allDataSet = preprocessData(allDataSet, attributes)
+                trainData.append(newDict)
+    trainData = preprocessData(trainData, attributes)
     attributeList = attributes.keys()
+
+    tree = train.GenerateDTree(trainData, attributeList, attributes, valueList)
     
-    inputPickle = open('savedTree.pkl', 'rb')
-    nTree = pickle.load(inputPickle)
+    saveTree = raw_input('Tree is generated! Would you like to save it? [y/n]').replace('\n', '')
+    if saveTree == 'y':
+        how = raw_input('How should I save the tree? [p: pickle (Python object form) t: text file').replace('\n', '')
+        if how == 'p':
+            with open('tree.pkl', 'wb') as output:
+                pickle.dump(tree, output, pickle.HIGHEST_PROTOCOL)
+        elif how == 't':
+            oStream = raw_input('Enter the name of the result file: ')
+            tree.saveTree(oStream)
+    
+    validate = raw_input('Do you want to validate it? [y/n]').replace('\n', '')
+    if validate == 'y':
+        how = raw_input('How would you like to validate it? [1: n-fold cross validation  2: with a validation set').replace('\n', '')
+        if how == '1':
+            N = int(raw_input('What is N?  '))
+            validate.nFold(trainData, valueList, attributes, N)
+        else:
+            vFilepath = raw_input('Where is it?').replace('\n', '')
+            vContent = open(vFilepath, 'rb')
+            vData = []
+            vValuelist = []
+            firstLine = True
+            for line in vContent:
+                if firstLine:
+                    pass
+                else:
+                    line = line.replace('\n', '')
+                    newData = line.split(',')
+                    i = 0
+                    newDict = {}
 
-    inputPickle2 = open('savedTree.pk', 'rb')
-    pTree = pickle.load(inputPickle2)
+                    doAppend = True
+                    for data in vData:
+                        if i == (len(vData) - 1):
+                            if vData[i] == '?':
+                                doAppend = False
+                            else:
+                                vValuelist.append(int(vData[i]))
+                            break
+                        if vData[i] == '?':
+                            newDict[attr_keys[i]] = vData[i]
+                        else:
+                            newDict[attr_keys[i]] = float(vData[i])
+                        i += 1
+                    if doAppend:
+                        # print newDict
+                        vData.append(newDict)
+            validate.validate(tree, vData, vValuelist)
+    print 'BYE!'
 
-    validate.validate(nTree, allDataSet, valueList, attributes)
-    validate.validate(pTree, allDataSet, valueList, attributes)
-
-#    pTree = train.dTreeNode()
-#    pTree.info, someNum = prune.pruneWrapper(savedTree.info, allDataSet, valueList, attributes)
-#    pTree.saveTree()
-
-    #with open('prunedTree.pkl', 'wb') as output:
-    #    pickle.dump(pTree, output, pickle.HIGHEST_PROTOCOL)
-
-
-    #validate.nFold(allDataSet[0:10000], valueList[0:10000], attributes, 10)
 
 # preProcess
 def preprocessData(allDataSet, attrDict):

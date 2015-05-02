@@ -16,7 +16,7 @@ def pruneWrapper(tree, dataset, expected, attrDict):
     else:
         if len(expected) == 0:
             newLeaf = train.dTreeNode(1)
-            return newLeaf, 0
+            return newLeaf.info, 0
         #print tree['decision']
         if attrDict[tree['decision']] == 'c':
             subsets, occurence = makeNewContinuousSubset(tree, dataset)
@@ -44,7 +44,7 @@ def pruneWrapper(tree, dataset, expected, attrDict):
 
         if prunedAcc > totAcc:
             newLeaf = train.dTreeNode(leaf)
-            return newLeaf, prunedAcc*len(expected)
+            return newLeaf.info, prunedAcc*len(expected)
         else:
             return tree, total
 
