@@ -51,10 +51,14 @@ class dTreeNode():
     def traverse(self, entry, root, attrDict):
         if len(root['branch'].keys()) == 0:
             target = root['label']
-            #print root
+            print root
+            print "################## "
+            print "#### FINISHED #### "
+            print "# LABEL : " + root['label'] + " #"
+            print "################## "
             return target
         else:
-            #print root['decision']
+            print root['decision']
             val = entry[root['decision']]
             #print root['decision']
             if attrDict[root['decision']] == 'c':
@@ -62,6 +66,8 @@ class dTreeNode():
                 conds.sort()
                 for i in range(len(conds)):
                     if i == len(conds) - 1:
+                        print 'taking this cond'
+                        print root['branch']
                         return self.traverse(entry, root['branch'][conds[i]], attrDict)
                     elif i == 0 and val < conds[0]:
                         return self.traverse(entry, root['branch'][conds[0]], attrDict)
@@ -141,7 +147,6 @@ def GenerateDTree(dataset, attrList, attrDict, valueList):
             newNode = GenerateDTree(newSet, newAttrList, attrDict, newValList)
             root.addBranch(possibleVal, newNode)
         else:
-         #   print "OOOOOOOOOO!!!"
             MCV = mostCommonValue(valueList)
             newNode = dTreeNode(MCV)
             root.addBranch(possibleVal, newNode)
@@ -219,9 +224,7 @@ def Gain(S, attr, attrDict, listValue):
             sumSubsetEntropy += (ent_i * p_i)
         return e1 - sumSubsetEntropy
     else:
-        # N = int(raw_input('Found a continuous value for attribute' + attr +
-                        #  '. How many subsets? '))
-        subsets, knownVals = makeSubsetsContinuous(S, attr, 3)  # TODO FIX THIS
+        subsets, knownVals = makeSubsetsContinuous(S, attr, 3)
         for i in knownVals.keys():
             p_i = knownVals[i] / len(S)
             s_i = []

@@ -30,27 +30,27 @@ def main():
 
         saveTree = raw_input('Finished generating the tree! Would you like to save it? [y/n]    ').replace('\n', '')
         if saveTree == 'y':
-            how = raw_input('How should I save the tree?\n [p: Python object form    t: text file').replace('\n', '')
+            how = raw_input('How should I save the tree?\n [p: Python object form    t: text file]      ').replace('\n', '')
             if how == 'p':
                 with open('tree.pkl', 'wb') as output:
                     pickle.dump(tTree, output, pickle.HIGHEST_PROTOCOL)
             elif how == 't':
-                oStream = raw_input('Enter the name of the result file:        ')
-                tree.saveTree(oStream)
+                    oStream = raw_input('Enter the name of the text file (WARNING: This may take a while):        ')
+                    tTree.saveTree(oStream)
 
-        validate = raw_input('Do you want to validate the generated tree? [y/n]        ').replace('\n', '')
-        if validate == 'y':
+        doValidate = raw_input('Do you want to validate the generated tree? [y/n]        ').replace('\n', '')
+        if doValidate == 'y':
             how = raw_input('How would you like to validate it?\n[1: n-fold cross-validation    ' +
                             '2: with a validation file        ')
             if how == '1':
                 N = int(raw_input('What is N?    '))
-                validate.nFold(trainData, valueList, attributes, N)
+                validate.nFold(trainData, attributeList, attrDict, N)
             else:
                 vFilepath = raw_input('Where is it?        ').replace('\n', '')
-                vFileRead = readDataFromFile(vFilepath, 'rb')
-                trainData = vFileRead[0]
+                vFileRead = readDataFromFile(vFilepath)
+                validData = vFileRead[0]
                 trainLabelList = vFileRead[2]
-                validate.validate(tree, vData, trainLabelList)
+                validate.validate(tTree, trainData, validData, attrDict)
         print "Bye!"
 
 # readInput
@@ -70,8 +70,8 @@ def readDataFromFile(filepath):
                     break
                 attr = attr.replace('\n', '').replace(' ', '')
                 while True:
-                    attrType = raw_input('Found an attr, ' + attr +
-                                        '. Type? [c: continuous (numeral), ' +
+                    attrType = raw_input('Found a new attribute <' + attr +
+                                        '>. Type? [c: continuous (numeral), ' +
                                         'd: discrete(nominal)] : ')
                     attrType = attrType.replace('\n', '')
                     if attrType == 'c' or attrType == 'd':
