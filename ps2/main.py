@@ -7,6 +7,7 @@
 import sys
 import csv
 import train
+import validate
 
 # main function
 def main():
@@ -61,12 +62,12 @@ def main():
                 allDataSet.append(newDict)
     allDataSet = preprocessData(allDataSet, attributes)
     attributeList = attributes.keys()
-    tree = train.GenerateDTree(allDataSet, attributeList, attributes, valueList)
-    tree.saveTree()
+    #tree = train.GenerateDTree(allDataSet[0:2000], attributeList, attributes, valueList[0:2000])
+    #tree.saveTree()
     #print allDataSet[0:2]
-    valid = tree.validate(allDataSet[0:2])
-    print valid
-
+    #c = validate.validate(tree, allDataSet[0:1000], valueList[0:1000], attributes)
+    #print c
+    validate.nFold(allDataSet[0:10000], valueList[0:10000], attributes, 10)
 
 # preProcess
 def preprocessData(allDataSet, attrDict):

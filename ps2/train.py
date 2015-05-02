@@ -39,30 +39,36 @@ class dTreeNode():
         #pprint(self.info, fout)
         pp.pprint(self.info)
 
-    def validate(self, vData):
+    def validate(self, vData, attrDict):
         valueList = []
         for entry in vData:
-            val = self.traverse(entry, self)
+            val = self.traverse(entry, self.info, attrDict)
+            if val == None:
+                val = 0
             valueList.append(val)
         return valueList
 
-    def traverse(self, entry, root):
-        if type(root) is dict:
-            if root['branch'] == {}:
-                target = root['label']
-                return target
+    def traverse(self, entry, root, attrDict):
+        if len(root['branch'].keys()) == 0:
+            target = root['label']
+            #print root
+            return target
+        else:
+            #print root['decision']
+            val = entry[root['decision']]
+            #print root['decision']
+            if attrDict[root['decision']] == 'c':
+                conds = root['branch'].keys()
+                conds.sort()
+                for i in range(len(conds)):
+                    if i == len(conds) - 1:
+                        return self.traverse(entry, root['branch'][conds[i]], attrDict)
+                    elif val > conds[i] and conds[i+1] > val:
+                        return self.traverse(entry, root['branch'][conds[i]], attrDict)
             else:
-                val = entry[root['decision']]
-                for cond in root.keys():
+                for cond in root['branch'].keys():
                     if val == cond:
-                        return self.traverse(entry, root['branch'][cond])
-        else: # this only happens with root node of the tree
-            val = entry[root.info['decision']]
-
-            for cond in root.info['branch'].keys():
-                if val == cond:
-                    return self.traverse(entry, root.info['branch'][cond])
-
+                        return self.traverse(entry, root['branch'][cond], attrDict)
 
 threadLock = threading.Lock()
 g_gain = {}
@@ -113,22 +119,15 @@ def GenerateDTree(dataset, attrList, attrDict, valueList):
 
     root.setDecision(bestAttr)
     if attrDict[bestAttr] == 'c':
-        subsets, knownVals = makeSubsetsContinuous(dataset, bestAttr, 5)
+        subsets, knownVals = makeSubsetsContinuous(dataset, bestAttr, 3)
     else:
         subsets, knownVals = makeSubsetsDiscrete(dataset, bestAttr)
 
     for possibleVal in subsets.keys():
-        newAttrList = attrList
-        newSet = []
-        newValList = []
-        for i in subsets[possibleVal]:
-            newSet.append(dataset[i])
-            newValList.append(valueList[i])
-        if bestAttr in newAttrList:
-            newAttrList.remove(bestAttr)
-        newNode = GenerateDTree(newSet, newAttrList, attrDict, newValList)
-        root.addBranch(possibleVal, newNode)
-        '''
+        newAttrList = []
+        for val in attrList:
+            newAttrList.append(val)
+
         if len(subsets[possibleVal]) != 0:
             newSet = []
             newValList = []
@@ -140,10 +139,11 @@ def GenerateDTree(dataset, attrList, attrDict, valueList):
             newNode = GenerateDTree(newSet, newAttrList, attrDict, newValList)
             root.addBranch(possibleVal, newNode)
         else:
+         #   print "OOOOOOOOOO!!!"
             MCV = mostCommonValue(valueList)
             newNode = dTreeNode(MCV)
             root.addBranch(possibleVal, newNode)
-        '''
+
 
     return root
 
@@ -219,7 +219,7 @@ def Gain(S, attr, attrDict, listValue):
     else:
         # N = int(raw_input('Found a continuous value for attribute' + attr +
                         #  '. How many subsets? '))
-        subsets, knownVals = makeSubsetsContinuous(S, attr, 10)  # TODO FIX THIS
+        subsets, knownVals = makeSubsetsContinuous(S, attr, 3)  # TODO FIX THIS
         for i in knownVals.keys():
             p_i = knownVals[i] / len(S)
             s_i = []
