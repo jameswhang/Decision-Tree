@@ -13,7 +13,9 @@ def validate(tree, vData, expected, attrDict):
 	#	if expected[i] == 0:
 #			correct += 1
 	print "RESULT!!!!"
-	print correct/len(expected)
+	res = correct/len(expected)
+        print res
+        return res
 
 
 

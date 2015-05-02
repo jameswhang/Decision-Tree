@@ -54,7 +54,7 @@ class dTreeNode():
             print root
             print "################## "
             print "#### FINISHED #### "
-            print "# LABEL : " + root['label'] + " #"
+            print "# LABEL : " + str(root['label']) + " #"
             print "################## "
             return target
         else:
@@ -192,8 +192,11 @@ def bestAttribute(dataset, attrList, attrDict, valueList):
 def Entropy(listAttr, listValue):
     pPos = positiveProp(listAttr, listValue)
     pNeg = negativeProp(listAttr, listValue)
-    #print pPos
-    #print pNeg
+    if pPos == 0 and pNeg == 0:
+        print listAttr
+        print listValue
+        print pPos
+        print pNeg
     if pPos == 0:
         return pNeg * -1 * log(pNeg, 2)
     elif pNeg == 0:

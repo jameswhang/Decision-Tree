@@ -26,7 +26,7 @@ def main():
 
         attributeList = attrDict.keys()
 
-        tTree = train.GenerateDTree(trainData, attributeList, attrDict, targetLabelList)
+        tTree = train.GenerateDTree(trainData[0:1000], attributeList, attrDict, targetLabelList[0:1000])
 
         saveTree = raw_input('Finished generating the tree! Would you like to save it? [y/n]    ').replace('\n', '')
         if saveTree == 'y':
@@ -44,7 +44,7 @@ def main():
                             '2: with a validation file        ')
             if how == '1':
                 N = int(raw_input('What is N?    '))
-                validate.nFold(trainData, attributeList, attrDict, N)
+                validate.nFold(trainData[0:1000], targetLabelList[0:1000], attrDict, N)
             else:
                 vFilepath = raw_input('Where is it?        ').replace('\n', '')
                 vFileRead = readDataFromFile(vFilepath)
