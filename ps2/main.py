@@ -40,7 +40,7 @@ def main():
 
         doPruning = raw_input('Do you want to prune the tree? [y/n]     ').replace('\n', '')
         if doPruning == 'y':
-            prune.pruneWrapper(tTree.info, trainData[0:1000], targetLabelList[0:1000], attrDict)
+            prune.pruneWrapper(tTree.info, trainData, targetLabelList, attrDict)
             print 'Pruning complete. All validation will be done with the pruned tree'
         doValidate = raw_input('Do you want to validate the generated tree? [y/n]        ').replace('\n', '')
         if doValidate == 'y':
@@ -53,8 +53,13 @@ def main():
                 vFilepath = raw_input('Where is it?        ').replace('\n', '')
                 vFileRead = readDataFromFile(vFilepath, True)
                 validData = vFileRead[0]
-                trainLabelList = vFileRead[2]
-                validate.validate(tTree, trainData, validData, attrDict)
+                vLabelList = vFileRead[2]
+                validate.validate(tTree, trainData, vLabelList, attrDict)
+
+	testRead = readDataFromFile('btest.csv', True)
+	testData = testRead[0]
+	testLabelList = testRead[2]
+	validate.test(tTree, testData, attrDict)
         print "Bye!"
 
 # readInput
@@ -179,7 +184,7 @@ def findAverage(allDataSet, key):
 
 # wrong usage
 def WrongUsage():
-    print "Usage: ./ps2 -t [training_file_path] -v [validate_file_path] "
+    print "Usage: ./ps2 [training_file_path]"
 
 def printIntro():
     print "########################################"

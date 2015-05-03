@@ -41,7 +41,7 @@ class dTreeNode():
 
     def validate(self, vData, attrDict):
         valueList = []
-        for entry in vData[0:15]:
+        for entry in vData:
             val = self.traverse(entry, self.info, attrDict)
             #if val == None:
             #    val = 0
@@ -51,14 +51,14 @@ class dTreeNode():
     def traverse(self, entry, root, attrDict):
         if len(root['branch'].keys()) == 0:
             target = root['label']
-            print root
-            print "################## "
-            print "#### FINISHED #### "
-            print "# LABEL : " + str(root['label']) + " #"
-            print "################## "
+            #print root
+            #print "################## "
+            # print "#### FINISHED #### "
+            #print "# LABEL : " + str(root['label']) + " #"
+            #print "################## "
             return target
         else:
-            print root['decision']
+            #print root['decision']
             val = entry[root['decision']]
             #print root['decision']
             if attrDict[root['decision']] == 'c':
@@ -66,18 +66,18 @@ class dTreeNode():
                 conds.sort()
                 for i in range(len(conds)):
                     if i == len(conds) - 1:
-                        print 'Taking: ' + str(conds[i])
+                        #print 'Taking: ' + str(conds[i])
                         return self.traverse(entry, root['branch'][conds[i]], attrDict)
                     elif i == 0 and val < conds[0]:
-                        print 'Taking: ' + str(conds[0])
+                        #print 'Taking: ' + str(conds[0])
                         return self.traverse(entry, root['branch'][conds[0]], attrDict)
                     elif val > conds[i] and conds[i+1] > val:
-                        print 'Taking: ' + str(conds[i])
+                        #print 'Taking: ' + str(conds[i])
                         return self.traverse(entry, root['branch'][conds[i]], attrDict)
             else:
                 for cond in root['branch'].keys():
                     if val == cond:
-                        print 'Taking: ' + str(cond)
+                        #print 'Taking: ' + str(cond)
                         return self.traverse(entry, root['branch'][cond], attrDict)
 
 threadLock = threading.Lock()
@@ -194,11 +194,6 @@ def bestAttribute(dataset, attrList, attrDict, valueList):
 def Entropy(listAttr, listValue):
     pPos = positiveProp(listAttr, listValue)
     pNeg = negativeProp(listAttr, listValue)
-    if pPos == 0 and pNeg == 0:
-        print listAttr
-        print listValue
-        print pPos
-        print pNeg
     if pPos == 0:
         return pNeg * -1 * log(pNeg, 2)
     elif pNeg == 0:

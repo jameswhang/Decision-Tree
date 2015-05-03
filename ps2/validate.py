@@ -1,6 +1,7 @@
 from __future__ import division
 import random
 import train
+import csv
 
 def validate(tree, vData, expected, attrDict):
 	predicted = tree.validate(vData, attrDict)
@@ -12,11 +13,26 @@ def validate(tree, vData, expected, attrDict):
 			correct += 1
 	#	if expected[i] == 0:
 #			correct += 1
+	#print predicted[0:100]
+	#print expected[0:100]
 	print "RESULT!!!!"
 	res = correct/len(expected)
         print res
         return res
 
+def test(tree, data, attrDict):
+	toWrite = []
+	toWrite.append(['winpercent', 'oppwinpercent', 'weather', 'temperature', 'numinjured', 'oppnuminjured', 'startingpitcher', 'oppstartingpitcher', 'dayssincegame', 'oppdayssincegame', 'homeaway', 'rundifferential', 'opprundifferential', 'winner'])
+	for entry in data:
+	    val = tree.traverse(entry, tree.info, attrDict)
+	    tList = []
+	    for key in entry.keys():
+		tList.append(entry[key])
+            tList.append(val)
+	    toWrite.append(tList)
+        with open('taaa.csv', 'w') as fp:
+            a = csv.writer(fp)
+            a.writerows(toWrite)
 
 
 def nFold(allData, expected, attrDict, N):
