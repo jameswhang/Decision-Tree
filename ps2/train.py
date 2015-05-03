@@ -41,7 +41,7 @@ class dTreeNode():
 
     def validate(self, vData, attrDict):
         valueList = []
-        for entry in vData:
+        for entry in vData[0:15]:
             val = self.traverse(entry, self.info, attrDict)
             #if val == None:
             #    val = 0
@@ -66,16 +66,18 @@ class dTreeNode():
                 conds.sort()
                 for i in range(len(conds)):
                     if i == len(conds) - 1:
-                        print 'taking this cond'
-                        print root['branch']
+                        print 'Taking: ' + str(conds[i])
                         return self.traverse(entry, root['branch'][conds[i]], attrDict)
                     elif i == 0 and val < conds[0]:
+                        print 'Taking: ' + str(conds[0])
                         return self.traverse(entry, root['branch'][conds[0]], attrDict)
                     elif val > conds[i] and conds[i+1] > val:
+                        print 'Taking: ' + str(conds[i])
                         return self.traverse(entry, root['branch'][conds[i]], attrDict)
             else:
                 for cond in root['branch'].keys():
                     if val == cond:
+                        print 'Taking: ' + str(cond)
                         return self.traverse(entry, root['branch'][cond], attrDict)
 
 threadLock = threading.Lock()

@@ -31,9 +31,10 @@ def pruneWrapper(tree, dataset, expected, attrDict):
             for index in subsets[subset]:
                 dataSubset.append(dataset[index])
                 labelSubset.append(expected[index])
-            subtree, subAcc = pruneWrapper(tree['branch'][subset], dataSubset, labelSubset, attrDict)
-            tree['branch'][subset] = subtree
-            total += subAcc
+            if subset in tree['branch'].keys():
+                subtree, subAcc = pruneWrapper(tree['branch'][subset], dataSubset, labelSubset, attrDict)
+                tree['branch'][subset] = subtree
+                total += subAcc
         totAcc = total / len(expected)
         # validate, prune
         prunedAcc = sum(expected) / len(expected)

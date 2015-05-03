@@ -19,14 +19,14 @@ def main():
     else:
         trainFile = sys.argv[1]
         printIntro()
-        readResult = readDataFromFile(trainFile)
+        readResult = readDataFromFile(trainFile, False)
         trainData = readResult[0]
         attrDict = readResult[1]
         targetLabelList = readResult[2]
 
         attributeList = attrDict.keys()
 
-        tTree = train.GenerateDTree(trainData[0:1000], attributeList, attrDict, targetLabelList[0:1000])
+        tTree = train.GenerateDTree(trainData, attributeList, attrDict, targetLabelList)
 
         saveTree = raw_input('Finished generating the tree! Would you like to save it? [y/n]    ').replace('\n', '')
         if saveTree == 'y':
@@ -38,6 +38,10 @@ def main():
                     oStream = raw_input('Enter the name of the text file (WARNING: This may take a while):        ')
                     tTree.saveTree(oStream)
 
+        doPruning = raw_input('Do you want to prune the tree? [y/n]     ').replace('\n', '')
+        if doPruning == 'y':
+            prune.pruneWrapper(tTree.info, trainData[0:1000], targetLabelList[0:1000], attrDict)
+            print 'Pruning complete. All validation will be done with the pruned tree'
         doValidate = raw_input('Do you want to validate the generated tree? [y/n]        ').replace('\n', '')
         if doValidate == 'y':
             how = raw_input('How would you like to validate it?\n[1: n-fold cross-validation    ' +
@@ -47,14 +51,14 @@ def main():
                 validate.nFold(trainData[0:1000], targetLabelList[0:1000], attrDict, N)
             else:
                 vFilepath = raw_input('Where is it?        ').replace('\n', '')
-                vFileRead = readDataFromFile(vFilepath)
+                vFileRead = readDataFromFile(vFilepath, True)
                 validData = vFileRead[0]
                 trainLabelList = vFileRead[2]
                 validate.validate(tTree, trainData, validData, attrDict)
         print "Bye!"
 
 # readInput
-def readDataFromFile(filepath):
+def readDataFromFile(filepath, v):
     inputFile = sys.argv[1]
     inputFileContent = open(inputFile)
     firstLine = True
