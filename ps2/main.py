@@ -56,10 +56,6 @@ def main():
                 vLabelList = vFileRead[2]
                 validate.validate(tTree, trainData, vLabelList, attrDict)
 
-	testRead = readDataFromFile('btest.csv', True)
-	testData = testRead[0]
-	testLabelList = testRead[2]
-	validate.test(tTree, testData, attrDict)
         print "Bye!"
 
 # readInput
