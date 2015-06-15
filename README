@@ -1,0 +1,20 @@
+Decision Tree Generator 
+Written by: James Whang
+
+To start, do this:
+python main.py [name_of_train_file]
+
+The rest of the instructions should be pretty self explanatory from the prompt. 
+
+The train file must have its target attribute as the LAST column of the .csv file.
+
+Once you execute this, you'll be asked to put in the type of the attribute. This is so that the tree can be generated differently if the attribute is some continous data.
+
+You can save the generated tree in human readable form if you choose to save it as a text file at the end of the tree generation.
+You may prune the tree. If you do this, the original tree gets replaced. 
+You can choose between validating the tree by using n-fold cross validation with your choice of n, or using a validation data. 
+
+When you try to validate, you'll be asked to enter the target attribute again, but you don't have to enter this one correctly since it uses the previously entered one anyway (i.e. you can just type in all cs or ds, it won't matter)
+
+
+
